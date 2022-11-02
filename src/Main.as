@@ -3,6 +3,7 @@ void Main() {
         NotifyMissingPermissions();
         return;
     }
+    trace("MLFeed detected: " + tostring(g_mlfeedDetected));
     startnew(MainLoop);
 }
 
@@ -54,8 +55,8 @@ void MainLoop() {
 
 uint lastMLFeedCheck = 0;
 void Update(float dt) {
-    if (g_mlfeedDetected) {
-        if (lastMLFeedCheck + 1000 < Time::Now) {
+    if (g_mlfeedDetected && !S_SkipMLFeedCheck) {
+        if (lastMLFeedCheck + 1 < Time::Now) {
             lastMLFeedCheck = Time::Now;
             CheckMLFeedForBetterTimes();
         }
@@ -237,7 +238,7 @@ void CheckMLFeedForBetterTimes() {
         auto player = raceData.GetPlayer(pbTime.name);
         if (player is null) continue;
         if (player.bestTime < 1) continue;
-        if (player.bestTime < int(pbTime.time)) {
+        if (player.bestTime < int(pbTime.time) || pbTime.time < 1) {
             pbTime.time = player.bestTime;
             pbTime.recordTs = Time::Stamp;
             pbTime.replayUrl = "";
@@ -349,6 +350,16 @@ void DrawUI() {
                                 auto pb = g_Records[i];
                                 UI::TableNextRow();
 
+                                // highlight if updated -- note: record timestamps can appear in the future, so we just clamp and wait. // pb.recordTs <= Time::Stamp
+                                bool shouldHighlight = pb.recordTs + 60 > uint(Time::Stamp);
+                                if (shouldHighlight) {
+                                    float hlAmount = 1. - Math::Clamp(float(int(Time::Stamp) - int(pb.recordTs)) / 60., 0., 1.);
+                                    UI::PushStyleColor(UI::Col::Text, vec4(.3, .9, .1, 1) * hlAmount + vec4(1, 1, 1, 1) * (1. - hlAmount));
+                                    // if (int(Time::Stamp) - int(pb.recordTs) < 0) {
+                                    //     trace('future timestamp: ' + (int(Time::Stamp) - int(pb.recordTs)));
+                                    // }
+                                }
+
                                 UI::TableNextColumn();
                                 UI::Text(tostring(i + 1) + ".");
 
@@ -378,6 +389,10 @@ void DrawUI() {
                                             OpenBrowserURL(pb.replayUrl);
                                         }
                                     }
+                                }
+
+                                if (shouldHighlight) {
+                                    UI::PopStyleColor();
                                 }
                             }
                         }

@@ -19,3 +19,8 @@ bool S_ShowDates = false;
 // don't expose via settings -- not sure it's that useful and mucks up formatting.
 // [Setting category="PB List" name="Show Replay Download Button?" description="Will show a button to download a player's PB ghost/replay"]
 const bool S_ShowReplayBtn = false;
+
+#if DEPENDENCY_MLFEEDRACEDATA
+[Setting category="PB List" name="Disable Live Updates via MLFeed?" description="Disable this to skip checking current race data for better times."]
+#endif
+bool S_SkipMLFeedCheck = false;
