@@ -67,7 +67,9 @@ bool g_CurrentlyLoadingRecords = false;
 
 void UpdateRecords() {
     lastPbUpdate = Time::Now;
-    g_Records = GetPlayersPBs();
+    auto newPBs = GetPlayersPBs();
+    if (newPBs.Length > 0) // empty arrays are returned on e.g., http error
+        g_Records = newPBs;
 }
 
 // fast enough to call once per frame

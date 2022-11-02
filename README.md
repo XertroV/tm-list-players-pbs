@@ -17,6 +17,7 @@ Settings:
 * Map name in top info; default true
 * Show players' club tag; default true
 * Show the date the PB was set; default false
+* Highlight recent PBs; default true
 * (If MLFeed is installed) Disable checking MLFeed for updates; default false
 
 License: Public Domain
