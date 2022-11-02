@@ -20,6 +20,15 @@ void NotifyMissingPermissions() {
         );
 }
 
+#if DEPENDENCY_MLFEEDRACEDATA
+bool g_mlfeedDetected = true;
+#else
+bool g_mlfeedDetected = false;
+#endif
+
+
+uint lastPbUpdate = 0;
+
 void MainLoop() {
     // when current playground becomes not-null, get records
     // when player count changes, get records
@@ -28,11 +37,13 @@ void MainLoop() {
         yield();
         if (GetApp().CurrentPlayground !is null) {
             startnew(UpdateRecords);
+            lastPbUpdate = Time::Now; // set this here to avoid triggering immediately
             while (GetApp().CurrentPlayground !is null) {
                 yield();
-                if (g_PlayersInServerLast != GetPlayersInServerCount()) {
+                if (g_PlayersInServerLast != GetPlayersInServerCount() || lastPbUpdate + 60000 < Time::Now) {
                     g_PlayersInServerLast = GetPlayersInServerCount();
                     startnew(UpdateRecords);
+                    lastPbUpdate = Time::Now; // bc we start it in a coro; don't want to run twice
                 }
             }
             g_Records.RemoveRange(0, g_Records.Length);
@@ -41,11 +52,22 @@ void MainLoop() {
     }
 }
 
+uint lastMLFeedCheck = 0;
+void Update(float dt) {
+    if (g_mlfeedDetected) {
+        if (lastMLFeedCheck + 1000 < Time::Now) {
+            lastMLFeedCheck = Time::Now;
+            CheckMLFeedForBetterTimes();
+        }
+    }
+}
+
 uint g_PlayersInServerLast = 0;
 array<PBTime@> g_Records;
 bool g_CurrentlyLoadingRecords = false;
 
 void UpdateRecords() {
+    lastPbUpdate = Time::Now;
     g_Records = GetPlayersPBs();
 }
 
@@ -173,6 +195,7 @@ class PBTime {
     uint recordTs;
     string recordDate;
     bool isLocalPlayer;
+
     PBTime(CSmPlayer@ _player, CMapRecord@ _rec, bool _isLocalPlayer = false) {
         wsid = _player.User.WebServicesUserId; // rare null pointer exception here? `[        Platform] [11:24:26] [players-pbs-dev]  Invalid address for member ID 03002000. This is likely a Nadeo bug! Setting it to null!`
         name = _player.User.Name;
@@ -180,18 +203,21 @@ class PBTime {
         isLocalPlayer = _isLocalPlayer;
         if (_rec !is null) {
             time = _rec.Time;
-            timeStr = Time::Format(_rec.Time);
             replayUrl = _rec.ReplayUrl;
             recordTs = _rec.Timestamp;
-            recordDate = Time::FormatString("%y-%m-%d %H:%M", recordTs);
         } else {
             time = 0;
-            timeStr = "???";
             replayUrl = "";
             recordTs = 0;
-            recordDate = "??-??-?? ??:??";
         }
+        UpdateCachedStrings();
     }
+
+    void UpdateCachedStrings() {
+        timeStr = time == 0 ? "???" : Time::Format(time);
+        recordDate = recordTs == 0 ? "??-??-?? ??:??" : Time::FormatString("%y-%m-%d %H:%M", recordTs);
+    }
+
     int opCmp(PBTime@ other) const {
         if (time == 0) {
             return (other.time == 0 ? 0 : 1); // one or both PB unset
@@ -201,6 +227,35 @@ class PBTime {
         return 1;
     }
 }
+
+#if DEPENDENCY_MLFEEDRACEDATA
+void CheckMLFeedForBetterTimes() {
+    auto raceData = MLFeed::GetRaceData();
+    bool foundBetter = false;
+    for (uint i = 0; i < g_Records.Length; i++) {
+        auto pbTime = g_Records[i];
+        auto player = raceData.GetPlayer(pbTime.name);
+        if (player is null) continue;
+        if (player.bestTime < 1) continue;
+        if (player.bestTime < int(pbTime.time)) {
+            pbTime.time = player.bestTime;
+            pbTime.recordTs = Time::Stamp;
+            pbTime.replayUrl = "";
+            pbTime.UpdateCachedStrings();
+            foundBetter = true;
+        }
+    }
+
+    // found a better time, so update PBs order
+    if (foundBetter) {
+        g_Records.SortAsc();
+    }
+}
+#else
+void CheckMLFeedForBetterTimes() {}
+#endif
+
+
 
 /* DRAW UI */
 
