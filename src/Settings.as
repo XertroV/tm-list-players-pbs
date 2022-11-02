@@ -41,4 +41,4 @@ bool S_SkipMLFeedCheck = false;
 bool S_HotkeyEnabled = false;
 
 [Setting category="PB List" name="Show/Hide Hotkey" description="The hotkey to toggle the list of PBs window."]
-VirtualKey S_Hotkey = VirtualKey::F4;
+VirtualKey S_Hotkey = VirtualKey::F2;
