@@ -1,3 +1,6 @@
+[Setting hidden]
+bool S_ShowWindow = true;
+
 [Setting category="PB List" name="Show when Overlay Hidden" description="Whether to show the window regardless of if the Openplanet overlay is hidden or not."]
 bool S_ShowWhenUIHidden = true;
 

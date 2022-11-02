@@ -36,10 +36,10 @@ void MainLoop() {
     // when playground goes null, reset
     while (PermissionsOkay) {
         yield();
-        if (GetApp().CurrentPlayground !is null && g_ShowWindow) {
+        if (GetApp().CurrentPlayground !is null && S_ShowWindow) {
             startnew(UpdateRecords);
             lastPbUpdate = Time::Now; // set this here to avoid triggering immediately
-            while (GetApp().CurrentPlayground !is null && g_ShowWindow) {
+            while (GetApp().CurrentPlayground !is null && S_ShowWindow) {
                 yield();
                 if (g_PlayersInServerLast != GetPlayersInServerCount() || lastPbUpdate + 60000 < Time::Now) {
                     g_PlayersInServerLast = GetPlayersInServerCount();
@@ -50,12 +50,12 @@ void MainLoop() {
             g_Records.RemoveRange(0, g_Records.Length);
         }
         // wait while playground is null or we aren't showing the window
-        while (GetApp().CurrentPlayground is null || !g_ShowWindow) yield();
+        while (GetApp().CurrentPlayground is null || !S_ShowWindow) yield();
     }
 }
 
 void Update(float dt) {
-    if (g_mlfeedDetected && !S_SkipMLFeedCheck && g_ShowWindow) {
+    if (g_mlfeedDetected && !S_SkipMLFeedCheck && S_ShowWindow) {
         // checking this every frame has minimal overhead; <0.1ms
         CheckMLFeedForBetterTimes();
     }
@@ -260,15 +260,13 @@ void CheckMLFeedForBetterTimes() {}
 
 /* DRAW UI */
 
-bool g_ShowWindow = true;
-
 /** Render function called every frame intended only for menu items in `UI`.
 */
 void RenderMenu() {
     if (!PermissionsOkay) return;
 
-    if (UI::MenuItem("\\$0f4" + Icons::ListAlt + "\\$z " + Meta::ExecutingPlugin().Name, "", g_ShowWindow)) {
-        g_ShowWindow = !g_ShowWindow;
+    if (UI::MenuItem("\\$0f4" + Icons::ListAlt + "\\$z " + Meta::ExecutingPlugin().Name, "", S_ShowWindow)) {
+        S_ShowWindow = !S_ShowWindow;
     }
 }
 
@@ -284,14 +282,16 @@ void Render() {
 
 void DrawUI() {
     if (!PermissionsOkay) return;
-    if (!g_ShowWindow) return;
+    if (!S_ShowWindow) return;
+    // if no map or no editor
+    if (GetApp().CurrentPlayground is null || GetApp().Editor !is null) return;
 
     int uiFlags = UI::WindowFlags::NoCollapse;
     if (S_LockWhenUIHidden && !UI::IsOverlayShown())
         uiFlags = uiFlags | UI::WindowFlags::NoTitleBar | UI::WindowFlags::NoInputs;
 
     UI::SetNextWindowSize(400, 400, UI::Cond::FirstUseEver);
-    if (UI::Begin("Players' PBs", g_ShowWindow, uiFlags)) {
+    if (UI::Begin("Players' PBs", S_ShowWindow, uiFlags)) {
         if (GetApp().CurrentPlayground is null || GetApp().Editor !is null) {
             UI::Text("Not in a map \\$999(or in editor).");
         } else if (g_Records.IsEmpty()) {
