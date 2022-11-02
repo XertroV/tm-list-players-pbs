@@ -59,6 +59,11 @@ bool get_PlaygroundNotNullAndEditorNull() {
     return GetApp().CurrentPlayground !is null && GetApp().Editor is null;
 }
 
+// returns true if should exit because we're in solo mode
+bool SoloModeExitCheck() {
+    return S_HideInSoloMode && GetApp().PlaygroundScript !is null;
+}
+
 void Update(float dt) {
     if (g_mlfeedDetected && !S_SkipMLFeedCheck && S_ShowWindow) {
         // checking this every frame has minimal overhead; <0.1ms
@@ -263,6 +268,23 @@ void CheckMLFeedForBetterTimes() {}
 
 
 
+
+
+/* hotkey */
+
+/** Called whenever a key is pressed on the keyboard. See the documentation for the [`VirtualKey` enum](https://openplanet.dev/docs/api/global/VirtualKey). */
+UI::InputBlocking OnKeyPress(bool down, VirtualKey key) {
+    if (!down || !S_HotkeyEnabled) return UI::InputBlocking::DoNothing;
+    if (key == S_Hotkey) {
+        if (!PlaygroundNotNullAndEditorNull || SoloModeExitCheck()) return UI::InputBlocking::DoNothing;
+        S_ShowWindow = !S_ShowWindow;
+        UI::ShowNotification(Meta::ExecutingPlugin().Name, "Toggled visibility", vec4(0.1, 0.4, 0.8, 0.4));
+        return UI::InputBlocking::Block;
+    }
+    return UI::InputBlocking::DoNothing;
+}
+
+
 /* DRAW UI */
 
 /** Render function called every frame intended only for menu items in `UI`.
@@ -288,7 +310,7 @@ void Render() {
 void DrawUI() {
     if (!PermissionsOkay) return;
     if (!S_ShowWindow) return;
-    if (S_HideInSoloMode && GetApp().PlaygroundScript !is null) return;
+    if (SoloModeExitCheck()) return;
     // if no map or no editor
     if (!PlaygroundNotNullAndEditorNull) return;
 

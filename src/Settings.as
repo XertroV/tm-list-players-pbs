@@ -36,3 +36,9 @@ bool S_ShowRecentPBsInGreen = true;
 [Setting category="PB List" name="Disable Live Updates via MLFeed?" description="Disable this to skip checking current race data for better times."]
 #endif
 bool S_SkipMLFeedCheck = false;
+
+[Setting category="PB List" name="Hotkey Active?" description="The hotkey will only work when this is checked."]
+bool S_HotkeyEnabled = false;
+
+[Setting category="PB List" name="Show/Hide Hotkey" description="The hotkey to toggle the list of PBs window."]
+VirtualKey S_Hotkey = VirtualKey::F4;
