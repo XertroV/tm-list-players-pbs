@@ -7,12 +7,14 @@ void Main() {
 }
 
 bool get_PermissionsOkay() {
-    return Permissions::ViewRecords() && Permissions::PlayRecords();
+    return Permissions::ViewRecords()
+        // && Permissions::PlayRecords() // don't think this is required, just viewing
+        ;
 }
 
 void NotifyMissingPermissions() {
     UI::ShowNotification(Meta::ExecutingPlugin().Name,
-        "Missing permissions! D:\nYou probably don't have club access.\nThis plugin won't do anything.",
+        "Missing permissions! D:\nYou probably don't have permission to view records/PBs.\nThis plugin won't do anything.",
         vec4(1, .4, .1, .3),
         10000
         );
@@ -33,6 +35,7 @@ void MainLoop() {
                     startnew(UpdateRecords);
                 }
             }
+            g_Records.RemoveRange(0, g_Records.Length);
         }
         while (GetApp().CurrentPlayground is null) yield();
     }
@@ -246,12 +249,14 @@ void DrawUI() {
                         }
                     }
                     UI::SameLine();
-                    UI::SetCursorPos(curPos1 + vec2(100, 0));
+                    UI::SetCursorPos(curPos1 + vec2(80, 0));
                     auto nbPlayers = GetPlayersInServerCount();
-                    // UI::Text("#Players: " + nbPlayers);
-                    // UI::SameLine();
-                    // UI::SetCursorPos(curPos1 + vec2(215, 0));
                     UI::Text("Your Rank: " + LocalPlayersRank + " / " + nbPlayers);
+                    if (S_TopInfoMapName) {
+                        UI::SameLine();
+                        UI::SetCursorPos(curPos1 + vec2(220, 0));
+                        UI::Text(MakeColorsOkayDarkMode(GetApp().RootMap.MapName));
+                    }
                 }
 
 

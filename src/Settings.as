@@ -7,11 +7,15 @@ bool S_LockWhenUIHidden = true;
 [Setting category="PB List" name="Hide Top Info?" description="The top info (showing refresh btn, #Players, and your rank) will be hidden if this is checked."]
 bool S_HideTopInfo = false;
 
+[Setting category="PB List" name="Map Name in Top Info?" description="Show the map name in the top info."]
+bool S_TopInfoMapName = true;
+
 [Setting category="PB List" name="Show Clubs?" description="Will show club tags in the list. Club tags have a slight performance impact."]
 bool S_ShowClubs = true;
 
 [Setting category="PB List" name="Show Dates?" description="Will show the date the PB was set"]
 bool S_ShowDates = true;
 
-[Setting category="PB List" name="Show Replay Download Button?" description="Will show a button to download a player's PB ghost/replay"]
-bool S_ShowReplayBtn = false;
+// don't expose via settings -- not sure it's that useful and mucks up formatting.
+// [Setting category="PB List" name="Show Replay Download Button?" description="Will show a button to download a player's PB ghost/replay"]
+const bool S_ShowReplayBtn = false;
