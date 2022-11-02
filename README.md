@@ -1,6 +1,6 @@
 # List Players' PBs
 
-Provides a window showing players' PBs for players in the current server/room.
+Provides a window showing PBs for players in the current server/room.
 
 PBs will refreshed whenever a player leaves/joins the server, or after 60s if nobody has joined/left in that time.
 
@@ -13,12 +13,14 @@ Settings:
 
 * Show when overlay hidden (persistent window); default true
 * Lock window when overlay hidden; default true
+* Show title bar when unlocked; default true
 * Hide top info (refresh button, rank, map name); default false
 * Map name in top info; default true
 * Show players' club tag; default true
 * Show the date the PB was set; default false
 * Highlight recent PBs; default true
 * (If MLFeed is installed) Disable checking MLFeed for updates; default false
+* Hotkey enable & choice (default disabled)
 
 License: Public Domain
 
