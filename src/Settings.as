@@ -7,6 +7,12 @@ bool S_ShowWhenUIHidden = true;
 [Setting category="PB List" name="Lock Window when Overlay Hidden" description="No effect unless 'Show when Overlay Hidden' is checked."]
 bool S_LockWhenUIHidden = true;
 
+[Setting category="PB List" name="Show Title Bar when Unlocked?" description="When the overlay is shown and/or the window isn't locked, it will have a title bar with a little (X) to close it."]
+bool S_TitleBarWhenUnlocked = true;
+
+[Setting category="PB List" name="Hide Window in Solo Play" description="When checked, the window will only show in multiplayer servers, not local games."]
+bool S_HideInSoloMode = true;
+
 [Setting category="PB List" name="Hide Top Info?" description="The top info (showing refresh btn, #Players, and your rank) will be hidden if this is checked."]
 bool S_HideTopInfo = false;
 

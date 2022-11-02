@@ -37,10 +37,10 @@ void MainLoop() {
     // when playground goes null, reset
     while (PermissionsOkay) {
         yield();
-        if (GetApp().CurrentPlayground !is null && S_ShowWindow) {
+        if (PlaygroundNotNullAndEditorNull && S_ShowWindow) {
             startnew(UpdateRecords);
             lastPbUpdate = Time::Now; // set this here to avoid triggering immediately
-            while (GetApp().CurrentPlayground !is null && S_ShowWindow) {
+            while (PlaygroundNotNullAndEditorNull && S_ShowWindow) {
                 yield();
                 if (g_PlayersInServerLast != GetPlayersInServerCount() || lastPbUpdate + 60000 < Time::Now) {
                     g_PlayersInServerLast = GetPlayersInServerCount();
@@ -51,8 +51,12 @@ void MainLoop() {
             g_Records.RemoveRange(0, g_Records.Length);
         }
         // wait while playground is null or we aren't showing the window
-        while (GetApp().CurrentPlayground is null || !S_ShowWindow) yield();
+        while (!PlaygroundNotNullAndEditorNull || !S_ShowWindow) yield();
     }
+}
+
+bool get_PlaygroundNotNullAndEditorNull() {
+    return GetApp().CurrentPlayground !is null && GetApp().Editor is null;
 }
 
 void Update(float dt) {
@@ -284,12 +288,17 @@ void Render() {
 void DrawUI() {
     if (!PermissionsOkay) return;
     if (!S_ShowWindow) return;
+    if (S_HideInSoloMode && GetApp().PlaygroundScript !is null) return;
     // if no map or no editor
-    if (GetApp().CurrentPlayground is null || GetApp().Editor !is null) return;
+    if (!PlaygroundNotNullAndEditorNull) return;
 
     int uiFlags = UI::WindowFlags::NoCollapse;
     if (S_LockWhenUIHidden && !UI::IsOverlayShown())
-        uiFlags = uiFlags | UI::WindowFlags::NoTitleBar | UI::WindowFlags::NoInputs;
+        uiFlags = uiFlags | UI::WindowFlags::NoInputs;
+    bool showTitleBar = S_TitleBarWhenUnlocked && UI::IsOverlayShown();
+    if (!showTitleBar)
+        uiFlags = uiFlags | UI::WindowFlags::NoTitleBar;
+
 
     UI::SetNextWindowSize(400, 400, UI::Cond::FirstUseEver);
     if (UI::Begin("Players' PBs", S_ShowWindow, uiFlags)) {
