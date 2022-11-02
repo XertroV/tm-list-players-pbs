@@ -234,7 +234,7 @@ void DrawUI() {
     if (S_LockWhenUIHidden && !UI::IsOverlayShown())
         uiFlags = uiFlags | UI::WindowFlags::NoTitleBar | UI::WindowFlags::NoInputs;
 
-    UI::SetNextWindowSize(400, 400, UI::Cond::Appearing);
+    UI::SetNextWindowSize(400, 400, UI::Cond::FirstUseEver);
     if (UI::Begin("Players' PBs", g_ShowWindow, uiFlags)) {
         if (GetApp().CurrentPlayground is null || GetApp().Editor !is null) {
             UI::Text("Not in a map \\$999(or in editor).");
@@ -300,7 +300,8 @@ void DrawUI() {
                                 if (S_ShowClubs) {
                                     UI::TableNextColumn();
                                     // 0.07 ms overhead for MakeColorsOkayDarkMode for 16 players
-                                    UI::Text(MakeColorsOkayDarkMode(ColoredString(pb.club)));
+                                    if (pb.club.Length > 0)
+                                        UI::Text(MakeColorsOkayDarkMode(ColoredString(pb.club)));
                                     // UI::Text(ColoredString(pb.club));
                                 }
 
