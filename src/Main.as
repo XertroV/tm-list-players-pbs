@@ -19,6 +19,7 @@ void NotifyMissingPermissions() {
         vec4(1, .4, .1, .3),
         10000
         );
+    warn("Missing permissions! D:\nYou probably don't have permission to view records/PBs.\nThis plugin won't do anything.");
 }
 
 #if DEPENDENCY_MLFEEDRACEDATA
