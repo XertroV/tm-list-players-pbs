@@ -1,0 +1,8 @@
+[meta]
+name     = "Players' PBs"
+author   = "XertroV"
+category = "Race"
+version  = "0.1.0"
+
+[script]
+#__DEFINES__
