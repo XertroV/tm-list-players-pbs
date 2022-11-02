@@ -36,10 +36,10 @@ void MainLoop() {
     // when playground goes null, reset
     while (PermissionsOkay) {
         yield();
-        if (GetApp().CurrentPlayground !is null) {
+        if (GetApp().CurrentPlayground !is null && g_ShowWindow) {
             startnew(UpdateRecords);
             lastPbUpdate = Time::Now; // set this here to avoid triggering immediately
-            while (GetApp().CurrentPlayground !is null) {
+            while (GetApp().CurrentPlayground !is null && g_ShowWindow) {
                 yield();
                 if (g_PlayersInServerLast != GetPlayersInServerCount() || lastPbUpdate + 60000 < Time::Now) {
                     g_PlayersInServerLast = GetPlayersInServerCount();
@@ -49,17 +49,15 @@ void MainLoop() {
             }
             g_Records.RemoveRange(0, g_Records.Length);
         }
-        while (GetApp().CurrentPlayground is null) yield();
+        // wait while playground is null or we aren't showing the window
+        while (GetApp().CurrentPlayground is null || !g_ShowWindow) yield();
     }
 }
 
-uint lastMLFeedCheck = 0;
 void Update(float dt) {
-    if (g_mlfeedDetected && !S_SkipMLFeedCheck) {
-        if (lastMLFeedCheck + 1 < Time::Now) {
-            lastMLFeedCheck = Time::Now;
-            CheckMLFeedForBetterTimes();
-        }
+    if (g_mlfeedDetected && !S_SkipMLFeedCheck && g_ShowWindow) {
+        // checking this every frame has minimal overhead; <0.1ms
+        CheckMLFeedForBetterTimes();
     }
 }
 
@@ -351,7 +349,7 @@ void DrawUI() {
                                 UI::TableNextRow();
 
                                 // highlight if updated -- note: record timestamps can appear in the future, so we just clamp and wait. // pb.recordTs <= Time::Stamp
-                                bool shouldHighlight = pb.recordTs + 60 > uint(Time::Stamp);
+                                bool shouldHighlight = S_ShowRecentPBsInGreen && pb.recordTs + 60 > uint(Time::Stamp);
                                 if (shouldHighlight) {
                                     float hlAmount = 1. - Math::Clamp(float(int(Time::Stamp) - int(pb.recordTs)) / 60., 0., 1.);
                                     UI::PushStyleColor(UI::Col::Text, vec4(.3, .9, .1, 1) * hlAmount + vec4(1, 1, 1, 1) * (1. - hlAmount));
