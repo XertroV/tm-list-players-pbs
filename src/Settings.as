@@ -14,7 +14,7 @@ bool S_TopInfoMapName = true;
 bool S_ShowClubs = true;
 
 [Setting category="PB List" name="Show Dates?" description="Will show the date the PB was set"]
-bool S_ShowDates = true;
+bool S_ShowDates = false;
 
 // don't expose via settings -- not sure it's that useful and mucks up formatting.
 // [Setting category="PB List" name="Show Replay Download Button?" description="Will show a button to download a player's PB ghost/replay"]
