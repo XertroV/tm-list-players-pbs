@@ -95,6 +95,7 @@ array<CSmPlayer@>@ GetPlayersInServer() {
     return ret;
 }
 
+// Returns a sorted list of player PB time objects. This is assumed to be called only from UpdateRecords().
 array<PBTime@> GetPlayersPBs() {
     auto mapg = cast<CTrackMania>(GetApp()).Network.ClientManiaAppPlayground;
     if (mapg is null) return {};
@@ -145,10 +146,21 @@ array<PBTime@> GetPlayersPBs() {
     for (uint i = 0; i < playersWOutRecs.Length; i++) {
         auto wsid = playersWOutRecs[i];
         auto player = cast<CSmPlayer>(wsidToPlayer[wsid]);
-        ret.InsertLast(PBTime(player, null));
+        try {
+            // sometimes we get a null pointer exception here on player.User.WebServicesUserId
+            ret.InsertLast(PBTime(player, null));
+        } catch {
+            warn("Got exception updating records. Will retry in 500ms. Exception: " + getExceptionInfo());
+            startnew(RetryRecordsSoon);
+        }
     }
     ret.SortAsc();
     return ret;
+}
+
+void RetryRecordsSoon() {
+    sleep(500);
+    UpdateRecords();
 }
 
 class PBTime {
@@ -162,7 +174,7 @@ class PBTime {
     string recordDate;
     bool isLocalPlayer;
     PBTime(CSmPlayer@ _player, CMapRecord@ _rec, bool _isLocalPlayer = false) {
-        wsid = _player.User.WebServicesUserId;
+        wsid = _player.User.WebServicesUserId; // rare null pointer exception here? `[        Platform] [11:24:26] [players-pbs-dev]  Invalid address for member ID 03002000. This is likely a Nadeo bug! Setting it to null!`
         name = _player.User.Name;
         club = _player.User.ClubTag;
         isLocalPlayer = _isLocalPlayer;
