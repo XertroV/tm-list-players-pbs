@@ -333,7 +333,7 @@ void DrawUI() {
                     if (S_TopInfoMapName) {
                         UI::SameLine();
                         UI::SetCursorPos(curPos1 + vec2(220, 0));
-                        UI::Text(MakeColorsOkayDarkMode(GetApp().RootMap.MapName));
+                        UI::Text(MakeColorsOkayDarkMode(ColoredString(GetApp().RootMap.MapName)));
                     }
                 }
 
