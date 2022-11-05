@@ -5,6 +5,9 @@ void Main() {
     }
     trace("MLFeed detected: " + tostring(g_mlfeedDetected));
     startnew(MainLoop);
+#if DEV
+    startnew(DevTest);
+#endif
 }
 
 bool get_PermissionsOkay() {
@@ -42,7 +45,8 @@ void MainLoop() {
             lastPbUpdate = Time::Now; // set this here to avoid triggering immediately
             while (PlaygroundNotNullAndEditorNull && S_ShowWindow) {
                 yield();
-                if (g_PlayersInServerLast != GetPlayersInServerCount() || lastPbUpdate + 60000 < Time::Now) {
+                if ((g_PlayersInServerLast != GetPlayersInServerCount() && lastPbUpdate + 1000 < Time::Now) || lastPbUpdate + 60000 < Time::Now) {
+                    yield();
                     g_PlayersInServerLast = GetPlayersInServerCount();
                     startnew(UpdateRecords);
                     lastPbUpdate = Time::Now; // bc we start it in a coro; don't want to run twice
@@ -170,7 +174,14 @@ array<PBTime@> GetPlayersPBs() {
             warn("Failed to lookup player from temp dict");
             continue;
         }
-        ret.InsertLast(PBTime(_p, rec, rec.WebServicesUserId == localWSID));
+        try {
+            ret.InsertLast(PBTime(_p, rec, rec.WebServicesUserId == localWSID));
+        } catch {
+            warn("Got exception updating records. Will retry in ~500ms. Exception: " + getExceptionInfo());
+            sleep(400);
+            startnew(UpdateRecords);
+            return {};
+        }
         // remove the player so we can quickly get all players in server that don't have records
         wsidToPlayer.Delete(rec.WebServicesUserId);
     }
@@ -183,8 +194,10 @@ array<PBTime@> GetPlayersPBs() {
             // sometimes we get a null pointer exception here on player.User.WebServicesUserId
             ret.InsertLast(PBTime(player, null));
         } catch {
-            warn("Got exception updating records. Will retry in 500ms. Exception: " + getExceptionInfo());
-            startnew(RetryRecordsSoon);
+            warn("Got exception updating records. Will retry in ~500ms. Exception: " + getExceptionInfo());
+            sleep(400);
+            startnew(UpdateRecords);
+            return {};
         }
     }
     ret.SortAsc();
@@ -192,7 +205,7 @@ array<PBTime@> GetPlayersPBs() {
 }
 
 void RetryRecordsSoon() {
-    sleep(500);
+    sleep(400);
     UpdateRecords();
 }
 
@@ -302,6 +315,7 @@ void RenderInterface() {
 }
 
 void Render() {
+    EditorRender();
     if (S_ShowWhenUIHidden && !UI::IsOverlayShown()) {
         DrawUI();
     }
