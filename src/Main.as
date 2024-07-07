@@ -145,7 +145,7 @@ array<PBTime@> GetPlayersPBs() {
     }
 
     g_CurrentlyLoadingRecords = true;
-    auto rl = scoreMgr.Map_GetPlayerListRecordList(userMgr.Users[0].Id, playerWSIDs, GetApp().RootMap.MapInfo.MapUid, "PersonalBest", "", "", "");
+    auto rl = scoreMgr.Map_GetPlayerListRecordList(userMgr.Users[0].Id, playerWSIDs, GetApp().RootMap.MapInfo.MapUid, "PersonalBest", "", "TimeAttack", "");
     while (rl.IsProcessing) yield();
     g_CurrentlyLoadingRecords = false;
 
