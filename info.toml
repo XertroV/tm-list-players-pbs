@@ -2,7 +2,7 @@
 name     = "Players' PBs"
 author   = "XertroV"
 category = "Race"
-version  = "0.1.9"
+version  = "0.1.10"
 
 [script]
 #__DEFINES__
