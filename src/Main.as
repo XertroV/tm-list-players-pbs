@@ -5,9 +5,6 @@ void Main() {
     }
     trace("MLFeed detected: " + tostring(g_mlfeedDetected));
     startnew(MainLoop);
-#if DEV
-    startnew(DevTest);
-#endif
 }
 
 bool get_PermissionsOkay() {
@@ -315,7 +312,6 @@ void RenderInterface() {
 }
 
 void Render() {
-    EditorRender();
     if (S_ShowWhenUIHidden && !UI::IsOverlayShown()) {
         DrawUI();
     }
