@@ -37,10 +37,10 @@ void MainLoop() {
     // when playground goes null, reset
     while (PermissionsOkay) {
         yield();
-        if (PlaygroundNotNullAndEditorNull && S_ShowWindow) {
+        if (PlaygroundNotNullAndEditorNullAndExtraOkay && S_ShowWindow) {
             startnew(UpdateRecords);
             lastPbUpdate = Time::Now; // set this here to avoid triggering immediately
-            while (PlaygroundNotNullAndEditorNull && S_ShowWindow) {
+            while (PlaygroundNotNullAndEditorNullAndExtraOkay && S_ShowWindow) {
                 yield();
                 if (g_PlayersInServerLast != GetPlayersInServerCount() || lastPbUpdate + 60000 < Time::Now) {
                     g_PlayersInServerLast = GetPlayersInServerCount();
@@ -51,12 +51,15 @@ void MainLoop() {
             g_Records.RemoveRange(0, g_Records.Length);
         }
         // wait while playground is null or we aren't showing the window
-        while (!PlaygroundNotNullAndEditorNull || !S_ShowWindow) yield();
+        while (!PlaygroundNotNullAndEditorNullAndExtraOkay || !S_ShowWindow) yield();
     }
 }
 
-bool get_PlaygroundNotNullAndEditorNull() {
-    return GetApp().CurrentPlayground !is null && GetApp().Editor is null;
+bool get_PlaygroundNotNullAndEditorNullAndExtraOkay() {
+    auto app = GetApp();
+    auto si = cast<CTrackManiaNetworkServerInfo>(app.Network.ServerInfo);
+    if (si.CurGameModeStr == "TM_Teams_Matchmaking_Online") return false;
+    return app.CurrentPlayground !is null && app.Editor is null;
 }
 
 // returns true if should exit because we're in solo mode
@@ -276,7 +279,7 @@ void CheckMLFeedForBetterTimes() {}
 UI::InputBlocking OnKeyPress(bool down, VirtualKey key) {
     if (!down || !S_HotkeyEnabled) return UI::InputBlocking::DoNothing;
     if (key == S_Hotkey) {
-        if (!PlaygroundNotNullAndEditorNull || SoloModeExitCheck()) return UI::InputBlocking::DoNothing;
+        if (!PlaygroundNotNullAndEditorNullAndExtraOkay || SoloModeExitCheck()) return UI::InputBlocking::DoNothing;
         S_ShowWindow = !S_ShowWindow;
         UI::ShowNotification(Meta::ExecutingPlugin().Name, "Toggled visibility", vec4(0.1, 0.4, 0.8, 0.4));
         return UI::InputBlocking::Block;
@@ -312,7 +315,7 @@ void DrawUI() {
     if (!S_ShowWindow) return;
     if (SoloModeExitCheck()) return;
     // if no map or no editor
-    if (!PlaygroundNotNullAndEditorNull) return;
+    if (!PlaygroundNotNullAndEditorNullAndExtraOkay) return;
 
     int uiFlags = UI::WindowFlags::NoCollapse;
     if (S_LockWhenUIHidden && !UI::IsOverlayShown())
@@ -355,7 +358,7 @@ void DrawUI() {
                     if (S_TopInfoMapName) {
                         UI::SameLine();
                         UI::SetCursorPos(curPos1 + vec2(220, 0));
-                        UI::Text(MakeColorsOkayDarkMode(ColoredString(GetApp().RootMap.MapName)));
+                        UI::Text(MakeColorsOkayDarkMode(Text::OpenplanetFormatCodes(GetApp().RootMap.MapName)));
                     }
                 }
 
@@ -399,7 +402,7 @@ void DrawUI() {
                                     UI::TableNextColumn();
                                     // 0.07 ms overhead for MakeColorsOkayDarkMode for 16 players
                                     if (pb.club.Length > 0)
-                                        UI::Text(MakeColorsOkayDarkMode(ColoredString(pb.club)));
+                                        UI::Text(MakeColorsOkayDarkMode(Text::OpenplanetFormatCodes(pb.club)));
                                     // UI::Text(ColoredString(pb.club));
                                 }
 
